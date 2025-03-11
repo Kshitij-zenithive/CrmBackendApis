@@ -2456,216 +2456,22 @@ func (r *queryResolver) GetOrganization(ctx context.Context, organizationID stri
 	}, nil
 }
 
+// ... (GetResourceProfiles and GetResourceProfile remain unchanged - they were correct) ...
 // GetResourceProfiles is the resolver for the getResourceProfiles field.
-// func (r *queryResolver) GetResourceProfiles(ctx context.Context, filter *generated.ResourceProfileFilter, pagination *generated.PaginationInput, sort *generated.ResourceProfileSortInput) (*generated.ResourceProfilePage, error) {
-// 	// panic(fmt.Errorf("not implemented: GetResourceProfiles - getResourceProfiles"))
-// 	var resourceProfiles []models.ResourceProfile
-// 	var totalCount int64
-
-// 	db := initializers.DB.Model(&models.ResourceProfile{})
-
-// 	// Apply filtering
-// 	if filter != nil {
-// 		if filter.Type != nil {
-// 			db = db.Where("type = ?", *filter.Type)
-// 		}
-// 		if filter.FirstName != nil {
-// 			db = db.Where("first_name ILIKE ?", "%"+*filter.FirstName+"%")
-// 		}
-// 		if filter.LastName != nil {
-// 			db = db.Where("last_name ILIKE ?", "%"+*filter.LastName+"%")
-// 		}
-// 		if filter.TotalExperienceMin != nil {
-// 			db = db.Where("total_experience >= ?", *filter.TotalExperienceMin)
-// 		}
-// 		if filter.TotalExperienceMax != nil {
-// 			db = db.Where("total_experience <= ?", *filter.TotalExperienceMax)
-// 		}
-// 		if filter.Status != nil {
-// 			db = db.Where("status = ?", *filter.Status)
-// 		}
-// 		if filter.VendorID != nil {
-// 			db = db.Where("vendor_id = ?", *filter.VendorID)
-// 		}
-// 		if filter.Search != nil {
-// 			searchPattern := "%" + *filter.Search + "%"
-// 			db = db.Where(
-// 				"first_name ILIKE ? OR last_name ILIKE ? OR EXISTS (SELECT 1 FROM vendors WHERE vendors.id = resource_profiles.vendor_id AND vendors.company_name ILIKE ?)",
-// 				searchPattern, searchPattern, searchPattern,
-// 			)
-// 		}
-// 		if len(filter.SkillIDs) > 0 {
-// 			// Join with the resource_skills table and filter by skill IDs
-// 			db = db.Joins("JOIN resource_skills ON resource_skills.resource_profile_id = resource_profiles.id").
-// 				Where("resource_skills.skill_id IN ?", filter.SkillIDs)
-// 		}
-// 	}
-// 	// Apply sorting
-// 	if sort != nil {
-// 		var sortOrder string
-// 		if sort.Order == generated.SortOrderAsc {
-// 			sortOrder = "asc"
-// 		} else {
-// 			sortOrder = "desc"
-// 		}
-
-// 		switch sort.Field {
-// 		case generated.ResourceProfileSortFieldCreatedAt:
-// 			db = db.Order("created_at " + sortOrder)
-// 		case generated.ResourceProfileSortFieldUpdatedAt:
-// 			db = db.Order("updated_at " + sortOrder)
-// 		case generated.ResourceProfileSortFieldFirstName:
-// 			db = db.Order("first_name " + sortOrder)
-// 		case generated.ResourceProfileSortFieldLastName:
-// 			db = db.Order("last_name " + sortOrder)
-// 		case generated.ResourceProfileSortFieldTotalExperience:
-// 			db = db.Order("total_experience " + sortOrder)
-// 		case generated.ResourceProfileSortFieldStatus:
-// 			db = db.Order("status " + sortOrder)
-// 		default:
-// 			return nil, fmt.Errorf("invalid sort field: %v", sort.Field)
-// 		}
-// 	} else {
-// 		//default sorting
-// 		db = db.Order("created_at desc")
-// 	}
-
-// 	// Count total records before applying limit/offset for pagination
-// 	db.Count(&totalCount)
-// 	// Apply pagination
-// 	if pagination != nil {
-// 		db = db.Offset(int((pagination.Page - 1) * pagination.PageSize)).Limit(int(pagination.PageSize))
-// 	}
-
-// 	// Execute the query
-// 	if err := db.Preload("Skills").Preload("Vendor").Find(&resourceProfiles).Error; err != nil {
-// 		return nil, fmt.Errorf("failed to retrieve resource profiles: %w", err)
-// 	}
-
-// 	// Convert to generated type
-// 	generatedProfiles := make([]*generated.ResourceProfile, len(resourceProfiles))
-// 	for i, profile := range resourceProfiles {
-
-// 		//convert pastProjects
-// 		var generatedPastProjects []*generated.PastProject
-
-// 		generatedProfiles[i] = &generated.ResourceProfile{
-// 			// ID:                 profile.ID.String(),
-// 			Type:               generated.ResourceType(profile.Type),
-// 			FirstName:          profile.FirstName,
-// 			LastName:           profile.LastName,
-// 			TotalExperience:    profile.TotalExperience,
-// 			Status:             generated.ResourceStatus(profile.Status),
-// 			ContactInformation: string(profile.ContactInformation),
-// 			GoogleDriveLink:    profile.GoogleDriveLink,
-// 			// VendorID: func() string {
-// 			// 	if profile.VendorID == "" {
-// 			// 		return ""
-// 			// 	}
-// 			// 	return profile.VendorID
-// 			// }(),
-// 			Vendor: func() *generated.Vendor { // Handle Vendor conversion
-// 				// if profile.Vendor == nil {
-// 				// 	return nil
-// 				// }
-// 				return &generated.Vendor{
-// 					// ID:          profile.Vendor.ID.String(),
-// 					// CompanyName: profile.Vendor.CompanyName,
-// 					// Status:      generated.VendorStatus(profile.Vendor.Status),
-// 					// ... other Vendor fields ...
-// 					//convert skills
-// 					Skills: []*generated.Skill{},
-// 					//convert contact list
-// 					ContactList: []*generated.Contact{},
-// 					//convert performance ratings
-// 					PerformanceRatings: []*generated.PerformanceRating{},
-// 					//convert resources
-// 					Resources: []*generated.ResourceProfile{},
-// 				}
-// 			}(),
-// 			// Skills:       utils.ConvertSkills(profile.Skills), // Use the helper function
-// 			PastProjects: generatedPastProjects,
-// 		}
-// 	}
-
-// 	return &generated.ResourceProfilePage{
-// 		Items:      generatedProfiles,
-// 		TotalCount: int32(totalCount),
-// 	}, nil
-// }
-
-// // GetResourceProfile is the resolver for the getResourceProfile field.
-// func (r *queryResolver) GetResourceProfile(ctx context.Context, resourceProfileID string) (*generated.ResourceProfile, error) {
-// 	// panic(fmt.Errorf("not implemented: GetResourceProfile - getResourceProfile"))
-// 	parsedResourceProfileID, err := uuid.Parse(resourceProfileID)
-// 	if err != nil {
-// 		return nil, fmt.Errorf("invalid resource profile ID: %w", err)
-// 	}
-
-// 	var resourceProfile models.ResourceProfile
-// 	if err := initializers.DB.Preload("Skills").First(&resourceProfile, "id = ?", parsedResourceProfileID).Error; err != nil {
-// 		if errors.Is(err, gorm.ErrRecordNotFound) {
-// 			return nil, fmt.Errorf("resource profile with ID %s not found", resourceProfileID)
-// 		}
-// 		return nil, fmt.Errorf("error retrieving resource profile: %w", err)
-// 	}
-
-// 	//convert pastProjects
-// 	var generatedPastProjects []*generated.PastProject
-
-// 	return &generated.ResourceProfile{
-// 		// ID:                 resourceProfile.ID.String(),
-// 		Type:               generated.ResourceType(resourceProfile.Type),
-// 		FirstName:          resourceProfile.FirstName,
-// 		LastName:           resourceProfile.LastName,
-// 		TotalExperience:    resourceProfile.TotalExperience,
-// 		Status:             generated.ResourceStatus(resourceProfile.Status),
-// 		ContactInformation: string(resourceProfile.ContactInformation),
-// 		GoogleDriveLink:    resourceProfile.GoogleDriveLink,
-// 		// VendorID: func() string {
-// 		// 	if resourceProfile.VendorID == "" {
-// 		// 		return ""
-// 		// 	}
-// 		// 	return resourceProfile.VendorID
-// 		// }(),
-// 		Vendor: func() *generated.Vendor { // Handle the nested Vendor conversion
-// 			// if resourceProfile.Vendor == nil {
-// 			// 	return nil
-// 			// }
-// 			return &generated.Vendor{
-// 				// ID:          resourceProfile.Vendor.ID.String(),
-// 				// CompanyName: resourceProfile.Vendor.CompanyName,
-// 				// Status:      generated.VendorStatus(resourceProfile.Vendor.Status),
-// 				// ... other Vendor fields ...
-// 				//convert skills
-// 				Skills: []*generated.Skill{},
-// 				//convert contact list
-// 				ContactList: []*generated.Contact{},
-// 				//convert performance ratings
-// 				PerformanceRatings: []*generated.PerformanceRating{},
-// 				//convert resources
-// 				Resources: []*generated.ResourceProfile{},
-// 			}
-// 		}(),
-// 		// Skills:       utils.ConvertSkills(resourceProfile.Skills), // Convert skills
-// 		PastProjects: generatedPastProjects,
-// 	}, nil
-// }
-
 func (r *queryResolver) GetResourceProfiles(ctx context.Context, filter *generated.ResourceProfileFilter, pagination *generated.PaginationInput, sort *generated.ResourceProfileSortInput) (*generated.ResourceProfilePage, error) {
 	log.Println("GetResourceProfiles called")
 
 	var resourceProfiles []models.ResourceProfile
 	query := initializers.DB.Model(&models.ResourceProfile{})
 
-	// Preload associations.  This is correct.
+	// Preload associations.
 	query = query.
 		Preload("ResourceSkills").
 		Preload("ResourceSkills.Skill").
-		Preload("VendorID").
+		Preload("Vendor"). // Correctly preload Vendor
 		Preload("PastProjects")
 
-	// --- Apply Filters --- (Correct)
+	// --- Apply Filters ---
 	if filter != nil {
 		if filter.Type != nil {
 			query = query.Where("resource_profiles.type = ?", filter.Type)
@@ -2695,14 +2501,14 @@ func (r *queryResolver) GetResourceProfiles(ctx context.Context, filter *generat
 
 		if filter.Search != nil && *filter.Search != "" {
 			search := "%" + *filter.Search + "%"
-			query = query.Where(`resource_profiles.first_name ILIKE ? OR resource_profiles.last_name ILIKE ? OR 
-				EXISTS (SELECT 1 FROM resource_skills rs JOIN skills s ON rs.skill_id = s.id 
+			query = query.Where(`resource_profiles.first_name ILIKE ? OR resource_profiles.last_name ILIKE ? OR
+				EXISTS (SELECT 1 FROM resource_skills rs JOIN skills s ON rs.skill_id = s.id
 				WHERE rs.resource_profile_id = resource_profiles.id AND s.name ILIKE ?)`,
 				search, search, search)
 		}
 	}
 
-	// --- Apply Sorting --- (Correct)
+	// --- Apply Sorting ---
 	if sort != nil {
 		order := "ASC"
 		if sort.Order == generated.SortOrderDesc {
@@ -2728,7 +2534,7 @@ func (r *queryResolver) GetResourceProfiles(ctx context.Context, filter *generat
 		query = query.Order("resource_profiles.created_at DESC")
 	}
 
-	// --- Apply Pagination --- (Correct)
+	// --- Apply Pagination ---
 	var totalCount int64
 	query.Count(&totalCount)
 
@@ -2737,7 +2543,7 @@ func (r *queryResolver) GetResourceProfiles(ctx context.Context, filter *generat
 		query = query.Offset(int(offset)).Limit(int(pagination.PageSize))
 	}
 
-	// Execute the query (Correct)
+	// Execute the query
 	if err := query.Find(&resourceProfiles).Error; err != nil {
 		log.Printf("Error fetching resource profiles: %v", err)
 		return nil, fmt.Errorf("internal error: failed to fetch resource profiles")
@@ -2756,26 +2562,23 @@ func (r *queryResolver) GetResourceProfiles(ctx context.Context, filter *generat
 				UpdatedAt:         project.UpdatedAt.Format(time.RFC3339),
 				ResourceProfileID: project.ResourceProfileID.String(),
 				ProjectName:       project.ProjectName,
-				Description:       &project.Description, // Correct
+				Description:       &project.Description,
 			})
 		}
 
-		// Map Vendor:  Directly use profile.Vendor (it's already loaded!)
+		// Map Vendor. Now it's clean and efficient!
 		var vendor *generated.Vendor
-		if profile.VendorID != uuid.Nil { // Check if Vendor exists
-			var vendorModel models.Vendor
-			if err := initializers.DB.First(&vendorModel, "id = ?", profile.VendorID).Error; err == nil {
-				vendor = &generated.Vendor{
-					VendorID:        vendorModel.ID.String(),
-					CreatedAt:       vendorModel.CreatedAt.Format(time.RFC3339),
-					UpdatedAt:       vendorModel.UpdatedAt.Format(time.RFC3339),
-					CompanyName:     vendorModel.CompanyName,
-					Status:          generated.VendorStatus(vendorModel.Status),
-					PaymentTerms:    generated.PaymentTerms(vendorModel.PaymentTerms),
-					Address:         vendorModel.Address,
-					GstOrVatDetails: vendorModel.GstOrVatDetails,
-					Notes:           vendorModel.Notes,
-				}
+		if profile.Vendor != nil { // Check if Vendor exists
+			vendor = &generated.Vendor{
+				VendorID:        profile.Vendor.ID.String(),
+				CreatedAt:       profile.Vendor.CreatedAt.Format(time.RFC3339),
+				UpdatedAt:       profile.Vendor.UpdatedAt.Format(time.RFC3339),
+				CompanyName:     profile.Vendor.CompanyName,
+				Status:          generated.VendorStatus(profile.Vendor.Status),
+				PaymentTerms:    generated.PaymentTerms(profile.Vendor.PaymentTerms),
+				Address:         profile.Vendor.Address,
+				GstOrVatDetails: profile.Vendor.GstOrVatDetails,
+				Notes:           profile.Vendor.Notes,
 			}
 		}
 
@@ -2789,7 +2592,7 @@ func (r *queryResolver) GetResourceProfiles(ctx context.Context, filter *generat
 			GoogleDriveLink:    profile.GoogleDriveLink,
 			Status:             generated.ResourceStatus(profile.Status),
 			VendorID:           profile.VendorID.String(), // Keep VendorID
-			Vendor:             vendor,                    // Correctly set the vendor
+			Vendor:             vendor,                    // Use the preloaded Vendor
 			ResourceSkills:     resourceSkillsGraphQL,
 			PastProjects:       pastProjects,
 		})
@@ -2807,16 +2610,16 @@ func (r *queryResolver) GetResourceProfile(ctx context.Context, resourceProfileI
 
 	var profile models.ResourceProfile
 
-	// Validate the UUID
+	// Validate UUID
 	if _, err := uuid.Parse(resourceProfileID); err != nil {
 		return nil, fmt.Errorf("invalid resource profile ID")
 	}
 
-	// Preload necessary associations. This is correct.
+	// Preload necessary associations
 	if err := initializers.DB.
 		Preload("ResourceSkills").
 		Preload("ResourceSkills.Skill").
-		Preload("Vendor").
+		Preload("Vendor"). // Correctly preload Vendor
 		Preload("PastProjects").
 		First(&profile, "id = ?", resourceProfileID).Error; err != nil {
 		log.Printf("Error fetching resource profile: %v", err)
@@ -2837,25 +2640,21 @@ func (r *queryResolver) GetResourceProfile(ctx context.Context, resourceProfileI
 		})
 	}
 
-	// Fetch Vendor details using VendorID
+	// Map Vendor. Now it's clean and efficient!
 	var vendor *generated.Vendor
-	if profile.VendorID != uuid.Nil { // Check if VendorID exists
-		var vendorModel models.Vendor
-		if err := initializers.DB.First(&vendorModel, "id = ?", profile.VendorID).Error; err == nil {
-			vendor = &generated.Vendor{
-				VendorID:        vendorModel.ID.String(),
-				CreatedAt:       vendorModel.CreatedAt.Format(time.RFC3339),
-				UpdatedAt:       vendorModel.UpdatedAt.Format(time.RFC3339),
-				CompanyName:     vendorModel.CompanyName,
-				Status:          generated.VendorStatus(vendorModel.Status),
-				PaymentTerms:    generated.PaymentTerms(vendorModel.PaymentTerms),
-				Address:         vendorModel.Address,
-				GstOrVatDetails: vendorModel.GstOrVatDetails,
-				Notes:           vendorModel.Notes,
-			}
+	if profile.Vendor != nil { // Check if Vendor exists
+		vendor = &generated.Vendor{
+			VendorID:        profile.Vendor.ID.String(),
+			CreatedAt:       profile.Vendor.CreatedAt.Format(time.RFC3339),
+			UpdatedAt:       profile.Vendor.UpdatedAt.Format(time.RFC3339),
+			CompanyName:     profile.Vendor.CompanyName,
+			Status:          generated.VendorStatus(profile.Vendor.Status),
+			PaymentTerms:    generated.PaymentTerms(profile.Vendor.PaymentTerms),
+			Address:         profile.Vendor.Address,
+			GstOrVatDetails: profile.Vendor.GstOrVatDetails,
+			Notes:           profile.Vendor.Notes,
 		}
 	}
-
 	return &generated.ResourceProfile{
 		ResourceProfileID:  profile.ID.String(),
 		Type:               generated.ResourceType(profile.Type),
@@ -2865,8 +2664,8 @@ func (r *queryResolver) GetResourceProfile(ctx context.Context, resourceProfileI
 		ContactInformation: string(profile.ContactInformation),
 		GoogleDriveLink:    profile.GoogleDriveLink,
 		Status:             generated.ResourceStatus(profile.Status),
-		VendorID:           profile.VendorID.String(), // Keep VendorID
-		Vendor:             vendor,                    // Correctly set vendor
+		VendorID:           profile.VendorID.String(),
+		Vendor:             vendor, // Set the vendor
 		ResourceSkills:     resourceSkillsGraphQL,
 		PastProjects:       pastProjects,
 	}, nil
@@ -2884,7 +2683,7 @@ func (r *queryResolver) GetVendors(ctx context.Context, filter *generated.Vendor
 		Preload("ContactList").
 		Preload("Skills").
 		Preload("PerformanceRatings")
-	//Preload("Resources") // Not preloading
+	//Preload("Resources") // Not preloading here
 
 	// --- Apply Filters ---
 	if filter != nil {
@@ -2902,6 +2701,7 @@ func (r *queryResolver) GetVendors(ctx context.Context, filter *generated.Vendor
 			query = query.Where("vendors.company_name ILIKE ? OR vendors.notes ILIKE ?", search, search)
 		}
 		if filter.SkillIDs != nil && len(filter.SkillIDs) > 0 {
+			// Many-to-many relationship with Skills.
 			query = query.Joins("JOIN vendor_skills ON vendor_skills.vendor_id = vendors.id").
 				Where("vendor_skills.skill_id IN ?", filter.SkillIDs)
 		}
@@ -2923,7 +2723,7 @@ func (r *queryResolver) GetVendors(ctx context.Context, filter *generated.Vendor
 		case generated.VendorSortFieldStatus:
 			query = query.Order("vendors.status " + order)
 		default:
-			query = query.Order("vendors.created_at DESC")
+			query = query.Order("vendors.created_at DESC") // Default sorting
 		}
 	} else {
 		query = query.Order("vendors.created_at DESC")
@@ -2931,7 +2731,7 @@ func (r *queryResolver) GetVendors(ctx context.Context, filter *generated.Vendor
 
 	// --- Apply Pagination ---
 	var totalCount int64
-	query.Count(&totalCount)
+	query.Count(&totalCount) // Count before pagination
 
 	if pagination != nil {
 		offset := (pagination.Page - 1) * pagination.PageSize
@@ -2956,18 +2756,22 @@ func (r *queryResolver) GetVendors(ctx context.Context, filter *generated.Vendor
 				UpdatedAt:   contact.UpdatedAt.Format(time.RFC3339),
 				VendorID:    contact.VendorID.String(),
 				Name:        contact.Name,
-				Email:       &contact.Email,       // Correct
-				PhoneNumber: &contact.PhoneNumber, // Correct
+				Email:       &contact.Email,
+				PhoneNumber: &contact.PhoneNumber,
 			})
 		}
 
-		// Map Skills
+		// Map Skills.  Handle the *string for Description.
 		var skills []*generated.Skill
 		for _, skill := range vendor.Skills {
+			description := "" // Default value if skill.Description is nil
+			if skill.Description != nil {
+				description = *skill.Description // Dereference the pointer
+			}
 			skills = append(skills, &generated.Skill{
 				SkillID:     skill.ID.String(),
 				Name:        skill.Name,
-				Description: *skill.Description, // Dereference the pointer
+				Description: description, // Use the string variable
 				Skilltype:   generated.SkillType(skill.SkillType),
 			})
 		}
@@ -2981,32 +2785,47 @@ func (r *queryResolver) GetVendors(ctx context.Context, filter *generated.Vendor
 				UpdatedAt:            rating.UpdatedAt.Format(time.RFC3339),
 				VendorID:             rating.VendorID.String(),
 				Rating:               int32(rating.Rating),
-				Review:               rating.Review, // Corrected: Already a pointer
+				Review:               rating.Review,
 			})
 		}
 
-		// Map Resources (separate query)
+		// Map Resources (using separate query, as with GetResourceProfiles)
+
 		var resources []*generated.ResourceProfile
 		var resourceModels []models.ResourceProfile
 		if err := initializers.DB.
-			Preload("ResourceSkills").
-			Preload("ResourceSkills.Skill").
+			Preload("ResourceSkills").       //Preload to use utility func
+			Preload("ResourceSkills.Skill"). //Preload to use utility func
 			Preload("PastProjects").
+			Preload("Vendor"). // PRELOAD Vendor here
 			Find(&resourceModels, "vendor_id = ?", vendor.ID).Error; err == nil {
 			for _, resource := range resourceModels {
-				resourceSkillsGraphQL := utils.ConvertResourceSkills(resource.ResourceSkills)
 
+				// Map ResourceSkills (using existing utils function, correctly)
+				resourceSkillsGraphQL := utils.ConvertResourceSkills(resource.ResourceSkills)
+				//Map PastProjects
 				var pastProjects []*generated.PastProject
 				for _, project := range resource.PastProjects {
 					pastProjects = append(pastProjects, &generated.PastProject{
 						PastProjectID:     project.ID.String(),
-						CreatedAt:         project.CreatedAt.Format(time.RFC3339),
+						CreatedAt:         project.CreatedAt.Format(time.RFC3339), // Standard format
 						UpdatedAt:         project.UpdatedAt.Format(time.RFC3339),
 						ResourceProfileID: project.ResourceProfileID.String(),
 						ProjectName:       project.ProjectName,
 						Description:       &project.Description, // Correct
 					})
 				}
+
+				// Map Vendor (Correct approach with Preload)
+				var resVendor *generated.Vendor
+				if resource.Vendor != nil {
+					resVendor = &generated.Vendor{
+						VendorID:    resource.Vendor.ID.String(),
+						CompanyName: resource.Vendor.CompanyName,
+						// ... other vendor fields ...
+					}
+				}
+
 				resources = append(resources, &generated.ResourceProfile{
 					ResourceProfileID:  resource.ID.String(),
 					Type:               generated.ResourceType(resource.Type),
@@ -3016,9 +2835,10 @@ func (r *queryResolver) GetVendors(ctx context.Context, filter *generated.Vendor
 					ContactInformation: string(resource.ContactInformation),
 					GoogleDriveLink:    resource.GoogleDriveLink,
 					Status:             generated.ResourceStatus(resource.Status),
-					VendorID:           resource.VendorID.String(),
+					VendorID:           resource.VendorID.String(), // Keep VendorID
+					Vendor:             resVendor,                  //Now we set Vendor.
 					ResourceSkills:     resourceSkillsGraphQL,
-					PastProjects:       pastProjects,
+					PastProjects:       pastProjects, // Correct Past projects
 				})
 			}
 		}
@@ -3062,7 +2882,7 @@ func (r *queryResolver) GetVendor(ctx context.Context, vendorID string) (*genera
 		Preload("ContactList").
 		Preload("Skills").
 		Preload("PerformanceRatings").
-		//Preload("Resources"). // Not preloading here
+		//Preload("Resources").  // Not preloading Resources here
 		First(&vendor, "id = ?", vendorID).Error; err != nil {
 		log.Printf("Error fetching vendor: %v", err)
 		return nil, fmt.Errorf("vendor not found")
@@ -3077,18 +2897,22 @@ func (r *queryResolver) GetVendor(ctx context.Context, vendorID string) (*genera
 			UpdatedAt:   contact.UpdatedAt.Format(time.RFC3339),
 			VendorID:    contact.VendorID.String(),
 			Name:        contact.Name,
-			Email:       &contact.Email,       // CORRECTED: Use pointer
-			PhoneNumber: &contact.PhoneNumber, // CORRECTED: Use pointer
+			Email:       &contact.Email,       // Corrected
+			PhoneNumber: &contact.PhoneNumber, // Corrected
 		})
 	}
 
 	// Map Skills
 	var skills []*generated.Skill
 	for _, skill := range vendor.Skills {
+		description := ""
+		if skill.Description != nil {
+			description = *skill.Description
+		}
 		skills = append(skills, &generated.Skill{
 			SkillID:     skill.ID.String(),
 			Name:        skill.Name,
-			Description: *skill.Description, // Dereference the pointer
+			Description: description, //Corrected
 			Skilltype:   generated.SkillType(skill.SkillType),
 		})
 	}
@@ -3102,20 +2926,23 @@ func (r *queryResolver) GetVendor(ctx context.Context, vendorID string) (*genera
 			UpdatedAt:            rating.UpdatedAt.Format(time.RFC3339),
 			VendorID:             rating.VendorID.String(),
 			Rating:               int32(rating.Rating),
-			Review:               rating.Review, // Corrected: Already a pointer
+			Review:               rating.Review,
 		})
 	}
 
-	// Map Resources (separate query)
+	// Map Resources (separate query, consistent approach)
 	var resources []*generated.ResourceProfile
 	var resourceModels []models.ResourceProfile
 	if err := initializers.DB.
-		Preload("ResourceSkills").
-		Preload("ResourceSkills.Skill").
+		Preload("ResourceSkills").       //Preload to use utility func
+		Preload("ResourceSkills.Skill"). //Preload to use utility func
 		Preload("PastProjects").
+		Preload("Vendor").
 		Find(&resourceModels, "vendor_id = ?", vendor.ID).Error; err == nil {
 		for _, resource := range resourceModels {
 			resourceSkillsGraphQL := utils.ConvertResourceSkills(resource.ResourceSkills)
+
+			//Map past projects
 			var pastProjects []*generated.PastProject
 			for _, project := range resource.PastProjects {
 				pastProjects = append(pastProjects, &generated.PastProject{
@@ -3127,6 +2954,16 @@ func (r *queryResolver) GetVendor(ctx context.Context, vendorID string) (*genera
 					Description:       &project.Description, // Correct
 				})
 			}
+			// Map the vendor if it is associated.
+			var resVendor *generated.Vendor
+			if resource.Vendor != nil {
+				resVendor = &generated.Vendor{
+					VendorID:    resource.Vendor.ID.String(),
+					CompanyName: resource.Vendor.CompanyName,
+					// ... map other vendor fields as necessary ...
+				}
+
+			}
 
 			resources = append(resources, &generated.ResourceProfile{
 				ResourceProfileID:  resource.ID.String(),
@@ -3137,9 +2974,10 @@ func (r *queryResolver) GetVendor(ctx context.Context, vendorID string) (*genera
 				ContactInformation: string(resource.ContactInformation),
 				GoogleDriveLink:    resource.GoogleDriveLink,
 				Status:             generated.ResourceStatus(resource.Status),
-				VendorID:           resource.VendorID.String(),
+				VendorID:           resource.VendorID.String(), // Keep VendorID
+				Vendor:             resVendor,
 				ResourceSkills:     resourceSkillsGraphQL,
-				PastProjects:       pastProjects,
+				PastProjects:       pastProjects, // Corrected: includes past projects now
 			})
 		}
 	}
@@ -3157,149 +2995,9 @@ func (r *queryResolver) GetVendor(ctx context.Context, vendorID string) (*genera
 		ContactList:        contacts,
 		Skills:             skills,
 		PerformanceRatings: performanceRatings,
-		Resources:          resources,
+		Resources:          resources, //Corrected: includes resource now
 	}, nil
 }
-
-// GetVendors is the resolver for the getVendors field.
-// func (r *queryResolver) GetVendors(ctx context.Context, filter *generated.VendorFilter, pagination *generated.PaginationInput, sort *generated.VendorSortInput) (*generated.VendorPage, error) {
-// 	// panic(fmt.Errorf("not implemented: GetVendors - getVendors"))
-// 	var vendors []models.Vendor
-// 	var totalCount int64
-
-// 	db := initializers.DB.Model(&models.Vendor{})
-
-// 	// Apply filtering
-// 	if filter != nil {
-// 		if filter.CompanyName != nil {
-// 			db = db.Where("company_name ILIKE ?", "%"+*filter.CompanyName+"%")
-// 		}
-// 		if filter.Status != nil {
-// 			db = db.Where("status = ?", *filter.Status)
-// 		}
-// 		if filter.PaymentTerms != nil {
-// 			db = db.Where("payment_terms = ?", *filter.PaymentTerms)
-// 		}
-// 		if filter.Search != nil {
-// 			searchPattern := "%" + *filter.Search + "%"
-// 			db = db.Where("company_name ILIKE ? OR address ILIKE ?", searchPattern, searchPattern)
-// 		}
-// 		if len(filter.SkillIDs) > 0 {
-// 			db = db.Joins("JOIN vendor_skills ON vendor_skills.vendor_id = vendors.id").
-// 				Where("vendor_skills.skill_id IN ?", filter.SkillIDs)
-// 		}
-// 	}
-
-// 	// Apply sorting
-// 	if sort != nil {
-// 		var sortOrder string
-// 		if sort.Order == generated.SortOrderAsc {
-// 			sortOrder = "asc"
-// 		} else {
-// 			sortOrder = "desc"
-// 		}
-
-// 		switch sort.Field {
-// 		case generated.VendorSortFieldCreatedAt:
-// 			db = db.Order("created_at " + sortOrder)
-// 		case generated.VendorSortFieldUpdatedAt:
-// 			db = db.Order("updated_at " + sortOrder)
-// 		case generated.VendorSortFieldCompanyName:
-// 			db = db.Order("company_name " + sortOrder)
-// 		case generated.VendorSortFieldStatus:
-// 			db = db.Order("status " + sortOrder)
-// 		default:
-// 			return nil, fmt.Errorf("invalid sort field: %v", sort.Field)
-// 		}
-// 	} else {
-// 		//default sorting
-// 		db = db.Order("created_at desc")
-// 	}
-
-// 	// Count total records before applying limit/offset for pagination
-// 	db.Count(&totalCount)
-
-// 	// Apply pagination
-// 	if pagination != nil {
-// 		db = db.Offset(int((pagination.Page - 1) * pagination.PageSize)).Limit(int(pagination.PageSize))
-// 	}
-
-// 	// Execute the query
-// 	if err := db.Preload("Skills").Find(&vendors).Error; err != nil {
-// 		return nil, fmt.Errorf("failed to retrieve vendors: %w", err)
-// 	}
-
-// 	// Convert to generated type
-// 	generatedVendors := make([]*generated.Vendor, len(vendors))
-// 	for i, vendor := range vendors {
-// 		//convert skills
-// 		var generatedSkills []*generated.Skill
-// 		//convert contact list
-// 		var generatedContactList []*generated.Contact
-// 		//convert performance ratings
-// 		var generatedPerformanceRatings []*generated.PerformanceRating
-// 		//convert resources
-// 		var generatedResources []*generated.ResourceProfile
-
-// 		generatedVendors[i] = &generated.Vendor{
-// 			// ID:                 vendor.ID.String(),
-// 			CompanyName:        vendor.CompanyName,
-// 			Status:             generated.VendorStatus(vendor.Status),
-// 			PaymentTerms:       generated.PaymentTerms(vendor.PaymentTerms),
-// 			Address:            vendor.Address,
-// 			GstOrVatDetails:    vendor.GstOrVatDetails,
-// 			Notes:              vendor.Notes,
-// 			Skills:             generatedSkills,
-// 			ContactList:        generatedContactList,
-// 			PerformanceRatings: generatedPerformanceRatings,
-// 			Resources:          generatedResources,
-// 		}
-// 	}
-
-// 	return &generated.VendorPage{
-// 		Items:      generatedVendors,
-// 		TotalCount: int32(totalCount),
-// 	}, nil
-// }
-
-// // GetVendor is the resolver for the getVendor field.
-// func (r *queryResolver) GetVendor(ctx context.Context, vendorID string) (*generated.Vendor, error) {
-// 	// panic(fmt.Errorf("not implemented: GetVendor - getVendor"))
-// 	parsedVendorID, err := uuid.Parse(vendorID)
-// 	if err != nil {
-// 		return nil, fmt.Errorf("invalid vendor ID: %w", err)
-// 	}
-
-// 	var vendor models.Vendor
-// 	if err := initializers.DB.Preload("Skills").First(&vendor, "id = ?", parsedVendorID).Error; err != nil {
-// 		if errors.Is(err, gorm.ErrRecordNotFound) {
-// 			return nil, fmt.Errorf("vendor with ID %s not found", parsedVendorID)
-// 		}
-// 		return nil, fmt.Errorf("error retrieving vendor: %w", err)
-// 	}
-
-// 	//convert skills
-// 	var generatedSkills []*generated.Skill
-// 	//convert contact list
-// 	var generatedContactList []*generated.Contact
-// 	//convert performance ratings
-// 	var generatedPerformanceRatings []*generated.PerformanceRating
-// 	//convert resources
-// 	var generatedResources []*generated.ResourceProfile
-// 	return &generated.Vendor{
-// 		// ID:                 vendor.ID.String(),
-// 		CompanyName:        vendor.CompanyName,
-// 		Status:             generated.VendorStatus(vendor.Status),
-// 		PaymentTerms:       generated.PaymentTerms(vendor.PaymentTerms),
-// 		Address:            vendor.Address,
-// 		GstOrVatDetails:    vendor.GstOrVatDetails,
-// 		Notes:              vendor.Notes,
-// 		Skills:             generatedSkills,
-// 		ContactList:        generatedContactList,
-// 		PerformanceRatings: generatedPerformanceRatings,
-// 		Resources:          generatedResources,
-// 	}, nil
-// }
 
 // GetTasks is the resolver for the getTasks field.
 func (r *queryResolver) GetTasks(ctx context.Context, filter *generated.TaskFilter, pagination *generated.PaginationInput, sort *generated.TaskSortInput) (*generated.TaskPage, error) {
